@@ -1,0 +1,7 @@
+cd ~/final-devops-project   # or wherever your repo is locally
+
+echo "# Final DevOps Project" > README.md     # create a file
+git add README.md
+git commit -m "Initial commit"
+git branch -M main
+git push -u origin main   # use your GitHub token here when prompted
