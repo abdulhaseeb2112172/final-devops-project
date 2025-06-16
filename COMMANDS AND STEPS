@@ -1,0 +1,117 @@
+ STEP 0: Prerequisites
+ssh-keygen -t rsa -b 2048 -f ~/.ssh/id_rsa
+ STEP 1: Clone / Create Project Directory
+
+mkdir final-devops-project && cd final-devops-project
+mkdir terraform ansible app
+touch terraform/main.tf terraform/variables.tf
+touch ansible/install_web.yml
+touch app/index.html Jenkinsfile README.md
+
+
+ STEP 2: Add Code to Each File (See Below)
+
+main.tf
+
+variables.tf
+
+install_web.yml
+
+index.html
+
+Jenkinsfile
+
+
+
+ STEP 3: Run Jenkins in Docker
+
+docker run -d \
+--name jenkins \
+-p 8080:8080 -p 50000:50000 \
+-v jenkins_home:/var/jenkins_home \
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v $(which terraform):/usr/local/bin/terraform \
+-v $(which ansible-playbook):/usr/local/bin/ansible-playbook \
+-v $(pwd):/workspace \
+jenkins/jenkins:lts
+ STEP 4: Set Up Jenkins
+Open browser: http://localhost:8080
+
+Get Jenkins password:
+
+docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+Install recommended plugins
+
+Install additional plugins:
+
+Git
+
+Pipeline
+
+SSH Agent
+
+Add SSH Key Credential:
+
+Jenkins → Manage Jenkins → Credentials → Add → SSH username with private key
+
+ID: ansible-key
+
+Username: azureuser (or your VM user)
+
+Paste your private key content
+
+ STEP 5: Initialize Terraform Manually (First Time Only)
+
+cd terraform
+terraform init
+terraform apply -auto-approve
+Note: You’ll be prompted for Azure subscription permissions.
+
+ STEP 6: Add Terraform Output as Inventory for Ansible
+Back in root of your project:
+
+
+terraform output -raw public_ip > ansible/inventory.ini
+Or generate dynamically inside Jenkinsfile (already added in the Jenkinsfile steps).
+
+STEP 7: Make Sure index.html Exists
+Example content:
+
+<!-- app/index.html -->
+<h1>Hello from Jenkins DevOps Project</h1>
+
+ STEP 8: Push to GitHub 
+
+git init
+git add .
+git commit -m "Final DevOps Project"
+git remote add origin https://github.com/yourusername/final-devops-project.git
+git push -u origin master
+
+
+ STEP 9: Create Jenkins Pipeline Job
+Jenkins → New Item → Pipeline
+
+Choose Git as SCM, give GitHub repo URL
+
+Jenkinsfile path: Jenkinsfile
+
+Save and Build Now
+
+STEP 10: Verify Deployment
+After successful pipeline run:
+
+
+ Replace IP with your Azure VM public IP
+curl http://<your-public-ip>
+
+
+Final Notes:
+If Jenkins fails due to permission errors, run with elevated Docker privileges.
+
+Make sure your Azure resources are not exceeding quota.
+
+To destroy infrastructure:
+
+cd terraform
+terraform destroy -auto-approve
