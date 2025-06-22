@@ -1,15 +1,17 @@
 variable "resource_group_name" {
-  default = "devops-rg"
+  default = "haseeb-rg"
 }
 
 variable "location" {
-  default = "East US"
+ 
+  default = " USA"
 }
 
 variable "admin_username" {
-  default = "azureuser"
+  default = "haseebadmin"
 }
 
 variable "public_key_path" {
+
   default = "~/.ssh/id_rsa.pub"
 }
