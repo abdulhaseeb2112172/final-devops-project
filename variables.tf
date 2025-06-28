@@ -1,10 +1,9 @@
 variable "resource_group_name" {
-  default = "haseeb-rg"
+  default = "haseeb-devops-rg"
 }
 
 variable "location" {
- 
-  default = " USA"
+  default = "Central India"
 }
 
 variable "admin_username" {
@@ -12,6 +11,5 @@ variable "admin_username" {
 }
 
 variable "public_key_path" {
-
   default = "~/.ssh/id_rsa.pub"
 }
