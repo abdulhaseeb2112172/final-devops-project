@@ -1,55 +1,26 @@
+
 pipeline {
     agent any
 
-    environment {
-        TF_DIR = 'terraform'
-        ANSIBLE_DIR = 'ansible'
-        APP_DIR = 'app'
-    }
-
     stages {
-        stage('Terraform Init') {
+        stage('Terraform Init & Apply') {
             steps {
-                dir("${TF_DIR}") {
+                dir('terraform') {
                     sh 'terraform init'
-                }
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                dir("${TF_DIR}") {
                     sh 'terraform apply -auto-approve'
                 }
             }
         }
 
-        stage('Get Public IP') {
+        stage('Ansible Setup') {
             steps {
-                script {
-                    def ip = sh(script: "terraform -chdir=terraform output -raw public_ip_address", returnStdout: true).trim()
-                    env.VM_IP = ip
-                }
+                sh 'ansible-playbook -i $(terraform -chdir=terraform output -raw public_ip_address), ansible/install_web.yml --user haseebadmin --private-key ~/.ssh/id_rsa'
             }
         }
 
-        stage('Ansible Install Web') {
+        stage('Verification') {
             steps {
-                dir("${ANSIBLE_DIR}") {
-                    sh """
-                      ansible-playbook install_web.yml \
-                      -i '${VM_IP},' \
-                      --private-key ~/.ssh/id_rsa \
-                      -u azureuser
-                    """
-                }
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                sh 'sleep 10'
-                sh "curl http://${VM_IP}"
+                sh 'curl $(terraform -chdir=terraform output -raw public_ip_address)'
             }
         }
     }
